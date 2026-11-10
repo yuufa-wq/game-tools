@@ -58,8 +58,10 @@ td.rate { color: var(--muted); }
 td.best { background: var(--on-bg); color: var(--on-ink); font-weight: 700; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .pair label { display: block; font-size: 13px; color: var(--muted); }
-.pair input { display: block; width: 100%; margin-top: 2px; font: inherit; font-size: 17px; color: var(--ink); background: var(--surface); border: 1px solid var(--vline); border-radius: 8px; padding: 7px 10px; }
+.inbox { display: flex; align-items: center; gap: 4px; margin-top: 2px; color: var(--ink); font-size: 17px; }
+.pair input { flex: 1; min-width: 0; width: 100%; font: inherit; font-size: 17px; color: var(--ink); background: var(--surface); border: 1px solid var(--vline); border-radius: 8px; padding: 7px 10px; }
 .pair input::placeholder { color: var(--grid); }
+td .sub { display: block; font-size: 11.5px; color: var(--muted); }
 .ranks { display: grid; grid-template-columns: repeat(6, 1fr); border: 1px solid var(--line); border-radius: 9px; overflow: hidden; background: var(--surface); margin: 10px 0 4px; }
 .ranks button { font: inherit; font-weight: 700; padding: 8px 0; color: var(--ink); background: transparent; border: 0; border-right: 1px solid var(--line); cursor: pointer; }
 .ranks button:last-child { border-right: 0; }
@@ -76,24 +78,23 @@ td.best { background: var(--on-bg); color: var(--on-ink); font-weight: 700; }
 <main>
   <section class="view" id="view-table">
     <h2>通常ライブ</h2>
-    <p class="note">イベントボーナスを掛ける前の値。増加割合は1つ下のランクからの増え方。</p>
     <div id="normalTables"></div>
     <h2>チャレンジライブ</h2>
-    <p class="note">1倍につきチャレンジpt200を使う。イベントボーナスを掛ける前の値。</p>
     <div id="chalTables"></div>
+    <h2>ボーナス（メンバー・スナップ共通）</h2>
+    <div class="tablewrap"><table id="bonusTable"></table></div>
   </section>
 
   <section class="view" id="view-calc" hidden>
     <h2>チャレンジライブ</h2>
     <div class="pair">
-      <label>ptボーナス（%）<input class="num" id="chal-pt" type="text" inputmode="decimal" enterkeyhint="next" placeholder="0"></label>
-      <label>アイテムボーナス（%）<input class="num" id="chal-item" type="text" inputmode="decimal" enterkeyhint="next" placeholder="0"></label>
+      <label>ptボーナス<span class="inbox">+<input class="num" id="chal-pt" type="text" inputmode="decimal" enterkeyhint="next" placeholder="0">%</span></label>
+      <label>アイテムボーナス<span class="inbox">+<input class="num" id="chal-item" type="text" inputmode="decimal" enterkeyhint="next" placeholder="0">%</span></label>
     </div>
     <div class="ranks" id="rank-chal"></div>
     <p class="note" id="perCp"></p>
 
     <h2>通常ライブの候補</h2>
-    <p class="note">空欄は上の値を使う。ランクは選んだものをもう一度押すと上と同じに戻る。</p>
     <div id="cands"></div>
 
     <h2>結果</h2>
@@ -145,10 +146,36 @@ td.best { background: var(--on-bg); color: var(--on-ink); font-weight: 700; }
   document.getElementById('normalTables').innerHTML =
     makeTable('イベントpt', nh, nm, pick(NORMAL, 'pt')) +
     makeTable('イベントアイテム', nh, nm, pick(NORMAL, 'item')) +
-    makeTable('チャレンジpt（イベントボーナスは乗らない）', nh, nm, pick(NORMAL, 'cp'));
+    makeTable('チャレンジpt', nh, nm, pick(NORMAL, 'cp'));
   document.getElementById('chalTables').innerHTML =
     makeTable('イベントpt', ch, cm, pick(CHAL, 'pt')) +
     makeTable('イベントアイテム', ch, cm, pick(CHAL, 'item'));
+
+  // ボーナス（覚醒1〜5）
+  var BONUS = {
+    newSSR: [30, 35, 40, 45, 50], reward: [15, 17, 20, 22, 25],
+    band: [20, 23, 26, 29, 32],   type: [10, 12, 14, 16, 18]
+  };
+  (function () {
+    var h = '<thead><tr><th>条件</th>';
+    for (var k = 1; k <= 5; k++) h += '<th>覚醒' + k + '</th>';
+    h += '</tr></thead><tbody>';
+    [['新規SSR', 'newSSR', true], ['報酬SR', 'reward', true], ['対象バンド', 'band', false], ['タイプ', 'type', false]]
+      .forEach(function (row) {
+        h += '<tr><th>' + row[0] + '</th>';
+        BONUS[row[1]].forEach(function (v, k) {
+          if (row[2]) {
+            // 新規SSRと報酬SRは、バンドとタイプを足した合計（下に単体の値）
+            var sum = v + BONUS.band[k] + BONUS.type[k];
+            h += '<td>+' + sum + '%<span class="sub">（+' + v + '%）</span></td>';
+          } else {
+            h += '<td>+' + v + '%</td>';
+          }
+        });
+        h += '</tr>';
+      });
+    document.getElementById('bonusTable').innerHTML = h + '</tbody>';
+  })();
 
   // ---------- 計算 ----------
   var chal = { rank: null };
@@ -158,8 +185,8 @@ td.best { background: var(--on-bg); color: var(--on-ink); font-weight: 700; }
   cands.forEach(function (c, i) {
     box.insertAdjacentHTML('beforeend',
       '<h3>候補' + (i + 1) + '</h3><div class="pair">' +
-      '<label>ptボーナス（%）<input class="num" id="c' + i + '-pt" type="text" inputmode="decimal" enterkeyhint="next"></label>' +
-      '<label>アイテムボーナス（%）<input class="num" id="c' + i + '-item" type="text" inputmode="decimal" enterkeyhint="next"></label>' +
+      '<label>ptボーナス<span class="inbox">+<input class="num" id="c' + i + '-pt" type="text" inputmode="decimal" enterkeyhint="next">%</span></label>' +
+      '<label>アイテムボーナス<span class="inbox">+<input class="num" id="c' + i + '-item" type="text" inputmode="decimal" enterkeyhint="next">%</span></label>' +
       '</div><div class="ranks" id="rank-c' + i + '"></div>');
   });
 
@@ -215,7 +242,7 @@ td.best { background: var(--on-bg); color: var(--on-ink); font-weight: 700; }
     showRanks('rank-chal', rc, null);
     document.getElementById('perCp').textContent = rc
       ? 'チャレンジpt 1あたり：pt ' + (CHAL[rc].pt * mc / CP_COST).toFixed(1) + '、アイテム ' + (CHAL[rc].item * ic / CP_COST).toFixed(1)
-      : 'ランクを選ぶと、チャレンジpt 1あたりの価値が出る。';
+      : '';
 
     var rows = [];
     cands.forEach(function (c, i) {
