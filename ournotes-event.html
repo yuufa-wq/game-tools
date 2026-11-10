@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>アワーノーツ イベント</title>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FFFFFF; --surface: #FFFFFF; --ink: #111111; --muted: #666666;
+  --line: #D4D4D4; --fill: #F0F0F0; --soft: #E4E4E4; --vline: #8E8E8E; --grid: #B4B4B4;
+  --on-bg: #222222; --on-ink: #FFFFFF; --off-edge: #BDBDBD; --on-edge: #000000;
+  --font: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E0E0E; --surface: #161616; --ink: #F2F2F2; --muted: #A0A0A0;
+    --line: #333333; --fill: #242424; --soft: #333333; --vline: #6A6A6A; --grid: #4A4A4A;
+    --on-bg: #F2F2F2; --on-ink: #111111; --off-edge: #000000; --on-edge: #9A9A9A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E0E0E; --surface: #161616; --ink: #F2F2F2; --muted: #A0A0A0;
+  --line: #333333; --fill: #242424; --soft: #333333; --vline: #6A6A6A; --grid: #4A4A4A;
+  --on-bg: #F2F2F2; --on-ink: #111111; --off-edge: #000000; --on-edge: #9A9A9A;
+  color-scheme: dark;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.65; -webkit-text-size-adjust: 100%; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 10; }
+.top { padding: 20px 16px 8px; max-width: 640px; margin: 0 auto; }
+.top h1 { margin: 0; font-size: 24px; line-height: 1.3; letter-spacing: 0.04em; }
+.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--bg); padding: 8px 16px 10px; }
+.tabs-inner { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 640px; margin: 0 auto; }
+.tab { font: inherit; font-weight: 700; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-bottom: 4px solid var(--off-edge); border-radius: 9px; padding: 8px 2px 6px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--on-bg); color: var(--on-ink); border-color: var(--on-bg); border-bottom-color: var(--on-edge); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+main { max-width: 640px; margin: 0 auto; padding: 4px 16px 40px; }
+.view[hidden] { display: none; }
+h2 { font-size: 17px; margin: 28px 0 8px; }
+h3 { font-size: 15px; margin: 18px 0 6px; }
+.view > h2:first-child { margin-top: 12px; }
+.note { color: var(--muted); font-size: 13px; margin: 4px 0 8px; }
+.tablewrap { border: 1px solid var(--vline); border-radius: 10px; background: var(--surface); overflow-x: auto; margin-bottom: 4px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+th, td { padding: 7px 4px; text-align: center; border-bottom: 1px solid var(--grid); font-size: 13.5px; line-height: 1.3; white-space: nowrap; }
+tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+th:not(:last-child), td:not(:last-child) { border-right: 1px solid var(--grid); }
+thead th { background: var(--fill); font-size: 12.5px; border-bottom: 1px solid var(--vline); }
+tbody th { background: var(--fill); }
+td.rate { color: var(--muted); }
+td.best { background: var(--on-bg); color: var(--on-ink); font-weight: 700; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pair label { display: block; font-size: 13px; color: var(--muted); }
+.pair input { display: block; width: 100%; margin-top: 2px; font: inherit; font-size: 17px; color: var(--ink); background: var(--surface); border: 1px solid var(--vline); border-radius: 8px; padding: 7px 10px; }
+.pair input::placeholder { color: var(--grid); }
+.ranks { display: grid; grid-template-columns: repeat(6, 1fr); border: 1px solid var(--line); border-radius: 9px; overflow: hidden; background: var(--surface); margin: 10px 0 4px; }
+.ranks button { font: inherit; font-weight: 700; padding: 8px 0; color: var(--ink); background: transparent; border: 0; border-right: 1px solid var(--line); cursor: pointer; }
+.ranks button:last-child { border-right: 0; }
+.ranks button.on { background: var(--on-bg); color: var(--on-ink); }
+.ranks button.inherit { background: var(--soft); }
+</style>
+</head>
+<body>
+<header class="top"><h1>アワーノーツ イベント</h1></header>
+<nav class="tabs"><div class="tabs-inner" id="tabs" role="tablist">
+  <button type="button" class="tab" role="tab" data-view="table">報酬表</button>
+  <button type="button" class="tab" role="tab" data-view="calc">計算</button>
+</div></nav>
+<main>
+  <section class="view" id="view-table">
+    <h2>通常ライブ</h2>
+    <p class="note">イベントボーナスを掛ける前の値。増加割合は1つ下のランクからの増え方。</p>
+    <div id="normalTables"></div>
+    <h2>チャレンジライブ</h2>
+    <p class="note">1倍につきチャレンジpt200を使う。イベントボーナスを掛ける前の値。</p>
+    <div id="chalTables"></div>
+  </section>
+
+  <section class="view" id="view-calc" hidden>
+    <h2>チャレンジライブ</h2>
+    <div class="pair">
+      <label>ptボーナス（%）<input class="num" id="chal-pt" type="text" inputmode="decimal" enterkeyhint="next" placeholder="0"></label>
+      <label>アイテムボーナス（%）<input class="num" id="chal-item" type="text" inputmode="decimal" enterkeyhint="next" placeholder="0"></label>
+    </div>
+    <div class="ranks" id="rank-chal"></div>
+    <p class="note" id="perCp"></p>
+
+    <h2>通常ライブの候補</h2>
+    <p class="note">空欄は上の値を使う。ランクは選んだものをもう一度押すと上と同じに戻る。</p>
+    <div id="cands"></div>
+
+    <h2>結果</h2>
+    <p class="note">ブースト1消費あたり。小数は四捨五入。</p>
+    <div class="tablewrap"><table id="result"></table></div>
+  </section>
+</main>
+<script>
+(function () {
+  var RANKS = ['SS', 'S', 'A', 'B', 'C', 'D'];
+  // 通常ライブのブースト0の値（pt、アイテム、チャレンジpt）
+  var NORMAL = {
+    SS: { pt: 100, item: 120, cp: 10 }, S: { pt: 75, item: 90, cp: 8 },
+    A: { pt: 50, item: 60, cp: 6 },     B: { pt: 35, item: 42, cp: 5 },
+    C: { pt: 25, item: 30, cp: 4 },     D: { pt: 15, item: 18, cp: 3 }
+  };
+  // チャレンジライブの1倍の値（pt、アイテム）
+  var CHAL = {
+    SS: { pt: 5500, item: 5650 }, S: { pt: 4500, item: 4900 },
+    A: { pt: 3500, item: 4150 },  B: { pt: 2750, item: 3400 },
+    C: { pt: 2000, item: 2650 },  D: { pt: 1500, item: 2150 }
+  };
+  var CP_COST = 200;   // チャレンジ1倍に使うチャレンジpt
+  var BOOST1 = 5;      // ブースト1はブースト0の5倍
+
+  function fmt(n) { return Math.round(n).toLocaleString('ja-JP'); }
+
+  // ---------- 報酬表 ----------
+  function makeTable(title, heads, mults, base) {
+    var h = '<h3>' + title + '</h3><div class="tablewrap"><table><thead><tr><th>ランク</th>';
+    heads.forEach(function (t) { h += '<th>' + t + '</th>'; });
+    h += '<th>増加割合</th></tr></thead><tbody>';
+    RANKS.forEach(function (r, i) {
+      h += '<tr><th>' + r + '</th>';
+      mults.forEach(function (m) { h += '<td>' + fmt(base[r] * m) + '</td>'; });
+      var rate = '—';
+      if (i < RANKS.length - 1) rate = '+' + ((base[r] / base[RANKS[i + 1]] - 1) * 100).toFixed(1) + '%';
+      h += '<td class="rate">' + rate + '</td></tr>';
+    });
+    return h + '</tbody></table></div>';
+  }
+  function pick(data, key) {
+    var o = {};
+    RANKS.forEach(function (r) { o[r] = data[r][key]; });
+    return o;
+  }
+  var nh = ['ブースト0', 'ブースト3', 'ブースト5'], nm = [1, 15, 25];
+  var ch = ['1倍', '2倍', '4倍', '8倍'], cm = [1, 2, 4, 8];
+  document.getElementById('normalTables').innerHTML =
+    makeTable('イベントpt', nh, nm, pick(NORMAL, 'pt')) +
+    makeTable('イベントアイテム', nh, nm, pick(NORMAL, 'item')) +
+    makeTable('チャレンジpt（イベントボーナスは乗らない）', nh, nm, pick(NORMAL, 'cp'));
+  document.getElementById('chalTables').innerHTML =
+    makeTable('イベントpt', ch, cm, pick(CHAL, 'pt')) +
+    makeTable('イベントアイテム', ch, cm, pick(CHAL, 'item'));
+
+  // ---------- 計算 ----------
+  var chal = { rank: null };
+  var cands = [{ rank: null }, { rank: null }, { rank: null }];
+
+  var box = document.getElementById('cands');
+  cands.forEach(function (c, i) {
+    box.insertAdjacentHTML('beforeend',
+      '<h3>候補' + (i + 1) + '</h3><div class="pair">' +
+      '<label>ptボーナス（%）<input class="num" id="c' + i + '-pt" type="text" inputmode="decimal" enterkeyhint="next"></label>' +
+      '<label>アイテムボーナス（%）<input class="num" id="c' + i + '-item" type="text" inputmode="decimal" enterkeyhint="next"></label>' +
+      '</div><div class="ranks" id="rank-c' + i + '"></div>');
+  });
+
+  function makeRanks(id, onPick) {
+    var el = document.getElementById(id);
+    RANKS.forEach(function (r) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = r;
+      b.addEventListener('click', function () { onPick(r); update(); });
+      el.appendChild(b);
+    });
+  }
+  makeRanks('rank-chal', function (r) { chal.rank = r; });
+  cands.forEach(function (c, i) {
+    makeRanks('rank-c' + i, function (r) { c.rank = (c.rank === r) ? null : r; });
+  });
+
+  function num(id) {
+    var s = document.getElementById(id).value.trim();
+    if (s === '') return null;
+    var v = parseFloat(s);
+    return isNaN(v) ? null : v;
+  }
+  function chalVal(key) {
+    var v = num('chal-' + key);
+    return v === null ? 0 : v;
+  }
+  // 候補iの実際に使う値（空欄なら上から引き継ぐ）
+  function eff(i, key) {
+    var own = (key === 'rank') ? cands[i].rank : num('c' + i + '-' + key);
+    if (own !== null) return own;
+    if (i === 0) {
+      if (key === 'item') return chalVal('item');
+      if (key === 'pt') return 0;
+      return null;
+    }
+    return eff(i - 1, key);
+  }
+
+  function showRanks(id, own, inherited) {
+    var bs = document.getElementById(id).children;
+    for (var k = 0; k < bs.length; k++) {
+      var r = bs[k].textContent;
+      bs[k].className = (r === own) ? 'on' : (own === null && r === inherited ? 'inherit' : '');
+      bs[k].setAttribute('aria-pressed', r === own ? 'true' : 'false');
+    }
+  }
+
+  function update() {
+    var rc = chal.rank;
+    var mc = 1 + chalVal('pt') / 100, ic = 1 + chalVal('item') / 100;
+    showRanks('rank-chal', rc, null);
+    document.getElementById('perCp').textContent = rc
+      ? 'チャレンジpt 1あたり：pt ' + (CHAL[rc].pt * mc / CP_COST).toFixed(1) + '、アイテム ' + (CHAL[rc].item * ic / CP_COST).toFixed(1)
+      : 'ランクを選ぶと、チャレンジpt 1あたりの価値が出る。';
+
+    var rows = [];
+    cands.forEach(function (c, i) {
+      document.getElementById('c' + i + '-pt').placeholder = i === 0 ? '0' : String(eff(i - 1, 'pt'));
+      document.getElementById('c' + i + '-item').placeholder = String(i === 0 ? chalVal('item') : eff(i - 1, 'item'));
+      showRanks('rank-c' + i, c.rank, i === 0 ? null : eff(i - 1, 'rank'));
+
+      var rn = eff(i, 'rank');
+      if (!rn || !rc) { rows.push(null); return; }
+      var mn = 1 + eff(i, 'pt') / 100, inn = 1 + eff(i, 'item') / 100;
+      var n = NORMAL[rn], cpUse = n.cp * BOOST1 / CP_COST;
+      var direct = n.pt * BOOST1 * mn;
+      var fromChal = cpUse * CHAL[rc].pt * mc;
+      var item = n.item * BOOST1 * inn + cpUse * CHAL[rc].item * ic;
+      rows.push({ direct: direct, fromChal: fromChal, total: direct + fromChal, item: item });
+    });
+
+    var bestPt = 0, bestItem = 0;
+    rows.forEach(function (x) {
+      if (x) { bestPt = Math.max(bestPt, Math.round(x.total)); bestItem = Math.max(bestItem, Math.round(x.item)); }
+    });
+    var h = '<thead><tr><th></th><th>pt直接</th><th>ptチャレンジ分</th><th>pt合計</th><th>アイテム</th></tr></thead><tbody>';
+    rows.forEach(function (x, i) {
+      h += '<tr><th>候補' + (i + 1) + '</th>';
+      if (!x) {
+        h += '<td>—</td><td>—</td><td>—</td><td>—</td></tr>';
+        return;
+      }
+      h += '<td>' + fmt(x.direct) + '</td><td>' + fmt(x.fromChal) + '</td>' +
+        '<td' + (Math.round(x.total) === bestPt ? ' class="best"' : '') + '>' + fmt(x.total) + '</td>' +
+        '<td' + (Math.round(x.item) === bestItem ? ' class="best"' : '') + '>' + fmt(x.item) + '</td></tr>';
+    });
+    document.getElementById('result').innerHTML = h + '</tbody>';
+  }
+
+  // 数字の欄：入力で再計算、「次へ」で次の欄へ
+  var inputs = Array.prototype.slice.call(document.querySelectorAll('input.num'));
+  inputs.forEach(function (el, k) {
+    el.addEventListener('input', update);
+    el.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      if (k + 1 < inputs.length) inputs[k + 1].focus(); else el.blur();
+    });
+  });
+  inputs[inputs.length - 1].setAttribute('enterkeyhint', 'done');
+
+  // ---------- タブ ----------
+  function show(name) {
+    if (name !== 'calc') name = 'table';
+    ['table', 'calc'].forEach(function (v) {
+      document.getElementById('view-' + v).hidden = (v !== name);
+    });
+    var tabs = document.querySelectorAll('.tab');
+    for (var k = 0; k < tabs.length; k++) {
+      tabs[k].setAttribute('aria-selected', tabs[k].getAttribute('data-view') === name ? 'true' : 'false');
+    }
+  }
+  document.getElementById('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('.tab');
+    if (b) location.hash = b.getAttribute('data-view');
+  });
+  window.addEventListener('hashchange', function () { show(location.hash.replace('#', '')); });
+
+  update();
+  show(location.hash.replace('#', ''));
+})();
+</script>
+</body>
+</html>
