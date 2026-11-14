@@ -69,6 +69,7 @@ table.g{width:100%;border-collapse:collapse}
 <div id="view"></div>
 </main>
 <script src="limbus-data.js"></script>
+  <script>if(window.LIMBUS===undefined){document.getElementById('err').textContent='データを読めていません';}</script>
 <script>
 var D = LIMBUS;
 var topTab = 'gift';
@@ -254,5 +255,4 @@ draw();
 </body>
   <pre id="err" style="color:#F26B6B;white-space:pre-wrap"></pre>
 <script>window.onerror=function(m,s,l){document.getElementById('err').textContent='エラー: '+m+' ('+s+' '+l+'行目)';};</script>
-<script>if(window.LIMBUS===undefined){document.getElementById('err').textContent='データを読めていません';}</script>
 </html>
