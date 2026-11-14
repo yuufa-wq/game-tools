@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Limbus Company 攻略メモ</title>
+<style>
+:root{--bg:#fff;--fg:#1f1f1e;--mute:#6b6a66;--line:#d9d7d0;--card:#f5f4ef;--p1:#185FA5;--p2:#A32D2D}
+[data-k="憤怒"]{color:#A32D2D}[data-k="色欲"]{color:#993556}[data-k="怠惰"]{color:#854F0B}[data-k="暴食"]{color:#3B6D11}
+[data-k="憂鬱"]{color:#185FA5}[data-k="傲慢"]{color:#534AB7}[data-k="嫉妬"]{color:#0F6E56}
+[data-k="火傷"]{color:#993C1D}[data-k="出血"]{color:#A32D2D}[data-k="破裂"]{color:#712B13}[data-k="振動"]{color:#0F6E56}[data-k="沈潜"]{color:#185FA5}
+@media (prefers-color-scheme:dark){
+:root{--bg:#1f1f1e;--fg:#ecebe6;--mute:#a3a29b;--line:#444441;--card:#2a2a28;--p1:#85B7EB;--p2:#F09595}
+[data-k="憤怒"]{color:#F09595}[data-k="色欲"]{color:#ED93B1}[data-k="怠惰"]{color:#EF9F27}[data-k="暴食"]{color:#97C459}
+[data-k="憂鬱"]{color:#85B7EB}[data-k="傲慢"]{color:#AFA9EC}[data-k="嫉妬"]{color:#5DCAA5}
+[data-k="火傷"]{color:#F0997B}[data-k="出血"]{color:#F09595}[data-k="破裂"]{color:#F5C4B3}[data-k="振動"]{color:#5DCAA5}[data-k="沈潜"]{color:#85B7EB}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
+main{max-width:960px;margin:0 auto;padding:16px}
+h1{font-size:20px;font-weight:500;margin:0 0 12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.tabs button{font:inherit;padding:6px 14px;border:1px solid var(--line);border-radius:8px;background:none;color:var(--fg);cursor:pointer}
+.tabs button.on{background:var(--card);border-color:var(--mute)}
+.tabs.sub button{font-size:14px;padding:4px 12px}
+table.g{width:100%;border-collapse:collapse}
+.g th,.g td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+.g th{font-weight:500;color:var(--mute);font-size:13px}
+.ic{width:40px;height:40px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--mute);font-size:11px;line-height:1.1;cursor:pointer;overflow:hidden;vertical-align:middle;margin:0 4px 4px 0}
+.ic img{width:100%;height:100%;object-fit:cover;display:block}
+.nm{margin-left:4px}
+.tag{font-weight:500}
+.ef{white-space:pre-wrap}
+.p1{color:var(--p1);font-weight:500}
+.p2{color:var(--p2);font-weight:500}
+.dim{opacity:.7}
+.mute{color:var(--mute)}
+.pop{border:1px solid var(--mute);border-radius:12px;background:var(--card);padding:12px 14px;margin:0 0 12px}
+.pn{font-weight:500}
+.pm{color:var(--mute);font-size:13px}
+.pe{white-space:pre-wrap;margin:6px 0}
+.pc{font:inherit;font-size:13px;padding:2px 10px;border:1px solid var(--line);border-radius:8px;background:none;color:var(--fg);cursor:pointer}
+@media (max-width:600px){
+.st thead{display:none}
+.st,.st tbody,.st tr,.st td{display:block;width:100%}
+.st tr{border-bottom:1px solid var(--line);padding:8px 0}
+.st td{border:0;padding:2px 0}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Limbus Company 攻略メモ</h1>
+<div class="tabs" id="toptabs">
+<button data-top="gift">ギフト</button>
+<button data-top="event">イベント</button>
+<button data-top="pack">テーマパック</button>
+</div>
+<div class="tabs sub" id="subtabs">
+<button data-sub="list">一覧</button>
+<button data-sub="combo">合成</button>
+<button data-sub="cost">強化コスト</button>
+</div>
+<div id="pop" class="pop" hidden></div>
+<div id="view"></div>
+</main>
+<script src="limbus-data.js"></script>
+<script>
+var D = LIMBUS;
+var topTab = 'gift';
+var subTab = 'list';
+function $(id){ return document.getElementById(id); }
+function el(tag, cls, text){
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function tag(text){
+  var s = el('span', 'tag', text);
+  s.setAttribute('data-k', text);
+  return s;
+}
+function findGift(n){
+  for (var i = 0; i < D.gifts.length; i++){
+    if (D.gifts[i].n === n) return D.gifts[i];
+  }
+  return null;
+}
+function effect(parent, str){
+  var re = /\+\+\{([^}]*)\}|\+\{([^}]*)\}|\[([^\]]*)\]/g;
+  var last = 0, m;
+  while ((m = re.exec(str)) !== null){
+    if (m.index > last) parent.appendChild(document.createTextNode(str.slice(last, m.index)));
+    if (m[1] !== undefined){
+      parent.appendChild(el('span', 'p2', m[1]));
+    } else if (m[2] !== undefined){
+      parent.appendChild(el('span', 'p1', m[2]));
+    } else {
+      var parts = m[3].split('|');
+      var first = true;
+      for (var i = 0; i < parts.length; i++){
+        if (parts[i] === '') continue;
+        if (!first) parent.appendChild(document.createTextNode('/'));
+        first = false;
+        if (i === 0) parent.appendChild(document.createTextNode(parts[i]));
+        else parent.appendChild(el('span', 'p' + (i > 2 ? 2 : i), parts[i]));
+      }
+    }
+    last = re.lastIndex;
+  }
+  if (last < str.length) parent.appendChild(document.createTextNode(str.slice(last)));
+}
+function showPop(name){
+  var p = $('pop');
+  p.textContent = '';
+  p.hidden = false;
+  p.appendChild(el('div', 'pn', name));
+  var g = findGift(name);
+  if (g){
+    var l = el('div', 'pm');
+    l.appendChild(tag(g.s));
+    l.appendChild(document.createTextNode(' ／ '));
+    l.appendChild(tag(g.t));
+    p.appendChild(l);
+    var e = el('div', 'pe');
+    effect(e, g.e);
+    p.appendChild(e);
+  } else {
+    p.appendChild(el('div', 'pm', 'データ未登録'));
+  }
+  var c = el('button', 'pc', '閉じる');
+  c.type = 'button';
+  c.onclick = function(){ p.hidden = true; };
+  p.appendChild(c);
+}
+function icon(name){
+  var b = el('button', 'ic');
+  b.type = 'button';
+  b.setAttribute('aria-label', name);
+  var img = new Image();
+  img.alt = '';
+  img.onerror = function(){ img.remove(); b.textContent = name.slice(0, 4); };
+  img.src = 'icons/' + encodeURIComponent(name) + '.png';
+  b.appendChild(img);
+  b.onclick = function(){ showPop(name); };
+  return b;
+}
+function makeTable(heads, cls){
+  var t = el('table', 'g' + (cls ? ' ' + cls : ''));
+  var h = el('thead');
+  var r = el('tr');
+  heads.forEach(function(x){
+    r.appendChild(typeof x === 'string' ? el('th', '', x) : x);
+  });
+  h.appendChild(r);
+  t.appendChild(h);
+  t.body = el('tbody');
+  t.appendChild(t.body);
+  return t;
+}
+function renderList(root){
+  var t = makeTable(['ギフト', '状態異常', '罪悪', '効果'], 'st');
+  D.gifts.forEach(function(g){
+    var r = el('tr');
+    var c1 = el('td');
+    c1.appendChild(icon(g.n));
+    c1.appendChild(el('span', 'nm', g.n));
+    var c2 = el('td');
+    c2.appendChild(tag(g.t));
+    var c3 = el('td');
+    c3.appendChild(tag(g.s));
+    var c4 = el('td', 'ef');
+    effect(c4, g.e);
+    [c1, c2, c3, c4].forEach(function(c){ r.appendChild(c); });
+    t.body.appendChild(r);
+  });
+  root.appendChild(t);
+}
+function renderCombo(root){
+  var t = makeTable(['合成後', '素材']);
+  D.combos.forEach(function(c){
+    var r = el('tr');
+    var a = el('td');
+    a.appendChild(icon(c.n));
+    var b = el('td');
+    c.m.forEach(function(n){ b.appendChild(icon(n)); });
+    r.appendChild(a);
+    r.appendChild(b);
+    t.body.appendChild(r);
+  });
+  root.appendChild(t);
+}
+function discounted(v){
+  return Math.round(v * (1 - D.discount) * 10) / 10;
+}
+function renderCost(root){
+  root.appendChild(el('p', 'mute', '割引は' + Math.round(D.discount * 100) + '%。()内は割引後の値。'));
+  var th1 = el('th', 'p1', '+');
+  var th2 = el('th', 'p2', '++');
+  var t = makeTable(['ランク', th1, th2]);
+  D.costs.forEach(function(row){
+    var r = el('tr');
+    r.appendChild(el('td', '', row[0]));
+    [1, 2].forEach(function(i){
+      var td = el('td', 'p' + i);
+      td.appendChild(document.createTextNode(String(row[i])));
+      td.appendChild(el('span', 'dim', ' (' + discounted(row[i]) + ')'));
+      r.appendChild(td);
+    });
+    t.body.appendChild(r);
+  });
+  root.appendChild(t);
+}
+function draw(){
+  var tops = document.querySelectorAll('[data-top]');
+  for (var i = 0; i < tops.length; i++){
+    tops[i].className = tops[i].getAttribute('data-top') === topTab ? 'on' : '';
+  }
+  var subs = document.querySelectorAll('[data-sub]');
+  for (var j = 0; j < subs.length; j++){
+    subs[j].className = subs[j].getAttribute('data-sub') === subTab ? 'on' : '';
+  }
+  $('subtabs').hidden = topTab !== 'gift';
+  $('pop').hidden = true;
+  var root = $('view');
+  root.textContent = '';
+  if (topTab !== 'gift'){
+    root.appendChild(el('p', 'mute', '準備中。'));
+  } else if (subTab === 'list'){
+    renderList(root);
+  } else if (subTab === 'combo'){
+    renderCombo(root);
+  } else {
+    renderCost(root);
+  }
+}
+document.addEventListener('click', function(e){
+  var t = e.target.getAttribute ? e.target.getAttribute('data-top') : null;
+  var s = e.target.getAttribute ? e.target.getAttribute('data-sub') : null;
+  if (t){ topTab = t; draw(); }
+  if (s){ subTab = s; draw(); }
+});
+draw();
+</script>
+</body>
+</html>
