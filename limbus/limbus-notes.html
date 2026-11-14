@@ -164,15 +164,19 @@ function makeTable(heads, cls){
   return t;
 }
 function renderList(root){
-  var t = makeTable(['ギフト', '状態異常', '罪悪', '効果'], 'st');
+  var th2 = el('th', 'w2', '状態異常');
+  var th3 = el('th', 'w2', '罪悪');
+  var t = makeTable(['ギフト', th2, th3, '効果'], 'st');
   D.gifts.forEach(function(g){
     var r = el('tr');
     var c1 = el('td');
-    c1.appendChild(icon(g.n));
-    c1.appendChild(el('span', 'nm', g.n));
-    var c2 = el('td');
+    var ib = el('div', 'ib');
+    ib.appendChild(icon(g.n));
+    ib.appendChild(el('div', 'nm', g.n));
+    c1.appendChild(ib);
+    var c2 = el('td', 'w2');
     c2.appendChild(tag(g.t));
-    var c3 = el('td');
+    var c3 = el('td', 'w2');
     c3.appendChild(tag(g.s));
     var c4 = el('td', 'ef');
     effect(c4, g.e);
